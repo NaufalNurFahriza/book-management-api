@@ -1,10 +1,10 @@
 package controllers
 
 import (
-	"mini-project-sanbercode/database"
-	"mini-project-sanbercode/repository"
-	"mini-project-sanbercode/structs"
 	"net/http"
+	"quiz-sanbercode/database"
+	"quiz-sanbercode/repository"
+	"quiz-sanbercode/structs"
 	"strconv"
 
 	"github.com/gin-gonic/gin"

@@ -1,4 +1,4 @@
-module mini-project-sanbercode
+module quiz-sanbercode
 
 go 1.23.3
 

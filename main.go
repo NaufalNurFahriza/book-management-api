@@ -3,9 +3,9 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"mini-project-sanbercode/controllers"
-	"mini-project-sanbercode/database"
 	"os"
+	"quiz-sanbercode/controllers"
+	"quiz-sanbercode/database"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"

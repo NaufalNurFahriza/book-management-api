@@ -2,7 +2,7 @@ package repository
 
 import (
 	"database/sql"
-	"mini-project-sanbercode/structs"
+	"quiz-sanbercode/structs"
 )
 
 func GetAllPerson(db *sql.DB) (result []structs.Person, err error) {
