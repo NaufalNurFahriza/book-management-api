@@ -44,7 +44,8 @@ func main() {
 
 	router := gin.Default()
 
-	// Auth routes
+	// Public routes
+	router.POST("/api/users/register", controllers.RegisterUser)
 	router.POST("/api/users/login", controllers.Login)
 
 	// Protected routes

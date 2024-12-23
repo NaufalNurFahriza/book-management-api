@@ -13,6 +13,34 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+func RegisterUser(c *gin.Context) {
+	var user structs.User
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Validate if username already exists
+	_, err := repository.GetUserByUsername(database.DbConnection, user.Username)
+	if err == nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Username already exists"})
+		return
+	}
+
+	// Set created_by as the username itself for new registrations
+	user.CreatedBy = user.Username
+	user.CreatedAt = time.Now()
+
+	if err := repository.CreateUser(database.DbConnection, user); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "User registered successfully",
+	})
+}
+
 func Login(c *gin.Context) {
 	var loginReq structs.LoginRequest
 	if err := c.ShouldBindJSON(&loginReq); err != nil {
