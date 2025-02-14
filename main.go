@@ -61,10 +61,10 @@ func main() {
 		// Categories routes
 		api.GET("/categories", controllers.GetAllCategories)
 		api.POST("/categories", controllers.CreateCategory)
-		api.GET("/categories/:id", controllers.GetCategory)
+		api.GET("/categories/:id", controllers.GetCategory) //
 		api.PUT("/categories/:id", controllers.UpdateCategory)
 		api.DELETE("/categories/:id", controllers.DeleteCategory)
-		api.GET("/categories/:id/books", controllers.GetBooksByCategory)
+		api.GET("/categories/:id/books", controllers.GetBooksByCategory) //
 
 		// Books routes
 		api.GET("/books", controllers.GetAllBooks)

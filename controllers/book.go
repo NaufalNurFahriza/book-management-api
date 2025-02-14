@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -47,16 +48,16 @@ func CreateBook(c *gin.Context) {
 		return
 	}
 
-	// Validate release year
 	if book.ReleaseYear < 1980 || book.ReleaseYear > 2024 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Release year must be between 1980 and 2024",
-		})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Release year must be between 1980 and 2024"})
 		return
 	}
 
-	// Set created_by from JWT claims
-	username, _ := c.Get("username")
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
 	book.CreatedBy = username.(string)
 
 	if err := repository.CreateBook(database.DbConnection, book); err != nil {
@@ -80,17 +81,22 @@ func UpdateBook(c *gin.Context) {
 		return
 	}
 
-	// Validate release year
 	if book.ReleaseYear < 1980 || book.ReleaseYear > 2024 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Release year must be between 1980 and 2024",
-		})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Release year must be between 1980 and 2024"})
+		return
+	}
+
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
 	book.ID = id
-	username, _ := c.Get("username")
-	book.ModifiedBy = username.(string)
+	book.ModifiedBy = new(string)
+	*book.ModifiedBy = username.(string)
+	book.ModifiedAt = new(time.Time)
+	*book.ModifiedAt = time.Now()
 
 	if err := repository.UpdateBook(database.DbConnection, book); err != nil {
 		if err == sql.ErrNoRows {
