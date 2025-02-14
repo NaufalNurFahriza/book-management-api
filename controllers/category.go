@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Get all categories
 func GetAllCategories(c *gin.Context) {
 	categories, err := repository.GetAllCategories(database.DbConnection)
 	if err != nil {
@@ -20,6 +21,7 @@ func GetAllCategories(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": categories})
 }
 
+// Get a category by ID
 func GetCategory(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -28,11 +30,11 @@ func GetCategory(c *gin.Context) {
 	}
 
 	category, err := repository.GetCategory(database.DbConnection, id)
-	if err == sql.ErrNoRows {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Category not found"})
-		return
-	}
 	if err != nil {
+		if err == sql.ErrNoRows {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Category not found"})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -40,6 +42,7 @@ func GetCategory(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": category})
 }
 
+// Create a new category
 func CreateCategory(c *gin.Context) {
 	var category structs.Category
 	if err := c.ShouldBindJSON(&category); err != nil {
@@ -47,7 +50,13 @@ func CreateCategory(c *gin.Context) {
 		return
 	}
 
-	username, _ := c.Get("username")
+	// Get username from context
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
 	category.CreatedBy = username.(string)
 
 	if err := repository.CreateCategory(database.DbConnection, category); err != nil {
@@ -58,6 +67,7 @@ func CreateCategory(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "Category created successfully"})
 }
 
+// Update category by ID
 func UpdateCategory(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -72,8 +82,15 @@ func UpdateCategory(c *gin.Context) {
 	}
 
 	category.ID = id
-	username, _ := c.Get("username")
-	category.ModifiedBy = username.(string)
+
+	// Get username from context
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+	userStr := username.(string)
+	category.ModifiedBy = &userStr // Gunakan pointer
 
 	if err := repository.UpdateCategory(database.DbConnection, category); err != nil {
 		if err == sql.ErrNoRows {
@@ -87,6 +104,7 @@ func UpdateCategory(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Category updated successfully"})
 }
 
+// Delete category by ID
 func DeleteCategory(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -106,6 +124,7 @@ func DeleteCategory(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Category deleted successfully"})
 }
 
+// Get books by category ID
 func GetBooksByCategory(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -113,13 +132,13 @@ func GetBooksByCategory(c *gin.Context) {
 		return
 	}
 
-	// Verify category exists
+	// Verify if category exists
 	_, err = repository.GetCategory(database.DbConnection, id)
-	if err == sql.ErrNoRows {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Category not found"})
-		return
-	}
 	if err != nil {
+		if err == sql.ErrNoRows {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Category not found"})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

@@ -4,6 +4,7 @@ import (
 	"book-management-api/database"
 	"book-management-api/repository"
 	"book-management-api/structs"
+	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -13,6 +14,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// RegisterUser - Mendaftarkan user baru
 func RegisterUser(c *gin.Context) {
 	var user structs.User
 	if err := c.ShouldBindJSON(&user); err != nil {
@@ -20,27 +22,27 @@ func RegisterUser(c *gin.Context) {
 		return
 	}
 
-	// Validate if username already exists
-	_, err := repository.GetUserByUsername(database.DbConnection, user.Username)
-	if err == nil {
+	// Cek apakah username sudah digunakan
+	existingUser, err := repository.GetUserByUsername(database.DbConnection, user.Username)
+	if err == nil && existingUser != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Username already exists"})
 		return
 	}
 
-	// Set created_by as the username itself for new registrations
+	// Set nilai default untuk CreatedAt & CreatedBy
 	user.CreatedBy = user.Username
 	user.CreatedAt = time.Now()
 
+	// Simpan user ke database
 	if err := repository.CreateUser(database.DbConnection, user); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
-		"message": "User registered successfully",
-	})
+	c.JSON(http.StatusCreated, gin.H{"message": "User registered successfully"})
 }
 
+// Login - Autentikasi user & generate JWT token
 func Login(c *gin.Context) {
 	var loginReq structs.LoginRequest
 	if err := c.ShouldBindJSON(&loginReq); err != nil {
@@ -48,23 +50,28 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	// Ambil user dari database berdasarkan username
 	user, err := repository.GetUserByUsername(database.DbConnection, loginReq.Username)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+	if err != nil || user == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials (user not found)"})
 		return
 	}
 
-	// Compare password
+	// Debug: Print password dari database dan input user
+	fmt.Println("Stored Hash:", user.Password)
+	fmt.Println("Entered Password:", loginReq.Password)
+
+	// Bandingkan password
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginReq.Password))
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials (wrong password)"})
 		return
 	}
 
 	// Generate JWT token
 	claims := jwt.MapClaims{
 		"username": user.Username,
-		"exp":      time.Now().Add(time.Hour * 24).Unix(), // Token expires in 24 hours
+		"exp":      time.Now().Add(time.Hour * 24).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -74,7 +81,5 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"token": tokenString,
-	})
+	c.JSON(http.StatusOK, gin.H{"token": tokenString})
 }
