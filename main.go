@@ -1,13 +1,13 @@
 package main
 
 import (
+	"book-management-api/controllers"
+	"book-management-api/database"
+	"book-management-api/middleware"
 	"database/sql"
 	"fmt"
 	"log"
 	"os"
-	"quiz-sanbercode/controllers"
-	"quiz-sanbercode/database"
-	"quiz-sanbercode/middleware"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -21,11 +21,17 @@ func main() {
 	}
 
 	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		os.Getenv("PGHOST"),
-		os.Getenv("PGPORT"),
-		os.Getenv("PGUSER"),
-		os.Getenv("PGPASSWORD"),
-		os.Getenv("PGDATABASE"),
+		// os.Getenv("PGHOST"),
+		// os.Getenv("PGPORT"),
+		// os.Getenv("PGUSER"),
+		// os.Getenv("PGPASSWORD"),
+		// os.Getenv("PGDATABASE"),
+
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_NAME"),
 	)
 
 	db, err := sql.Open("postgres", psqlInfo)

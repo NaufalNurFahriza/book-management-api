@@ -1,11 +1,11 @@
 package controllers
 
 import (
+	"book-management-api/database"
+	"book-management-api/repository"
+	"book-management-api/structs"
 	"net/http"
 	"os"
-	"quiz-sanbercode/database"
-	"quiz-sanbercode/repository"
-	"quiz-sanbercode/structs"
 	"time"
 
 	"github.com/gin-gonic/gin"

@@ -1,9 +1,9 @@
 package repository
 
 import (
+	"book-management-api/structs"
 	"database/sql"
 	"fmt"
-	"quiz-sanbercode/structs"
 	"time"
 )
 

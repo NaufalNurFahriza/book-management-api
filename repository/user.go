@@ -1,8 +1,8 @@
 package repository
 
 import (
+	"book-management-api/structs"
 	"database/sql"
-	"quiz-sanbercode/structs"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
